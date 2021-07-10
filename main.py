@@ -33,7 +33,7 @@ with open(android_v_conf, "r") as f:
 def get_devices_list():
     list = ""
     for device in dev_ver:
-        list += device + "\n"
+        list += device[:-12] + "\n"
     return list
 
 
@@ -45,18 +45,18 @@ def generate_layout():
                   [sg.Text("Build version:", font=('Arial', 15))],
                   [sg.Input(key="build_version", size=(5, None))],
                   [sg.Text("Device: ", size=(5, 1), font=('Arial', 15))],
-                  [sg.Combo(list(devices.keys()), key='device', size=(15, 1))],
-                  [sg.Text("Android version: ", size=(15, 1), font=('Arial', 15))],
-                  [sg.Combo(list(android_versions.keys()), key='android')],
+                  [sg.Combo(list(devices.keys()), key='device', size=(21, 1))],
                   [sg.Text("Branch:", font=('Arial', 15))],
                   [sg.Checkbox("Dev", key="Dev", enable_events=True, font=('Arial', 12))],
-                  [sg.Checkbox("Release", key="Release", enable_events=True, font=('Arial', 12))]], font=('Arial', 15),
+                  [sg.Checkbox("Release", key="Release", enable_events=True, font=('Arial', 12))],
+                  [sg.Text("", size=(5, 4))]
+                  ], font=('Arial', 15),
                  vertical_alignment='top', size=(19, 19)),
 
-        sg.Frame('Devices added', [[sg.Text(get_devices_list(), key="device_list", font=('Arial', 12), size=(19, 19))]],
-                 font=('Arial', 15), vertical_alignment='top', size=(19, 18))
+        sg.Frame('Devices added', [[sg.Text(get_devices_list(), key="device_list", font=('Arial', 12), size=(20, 19))]],
+                 font=('Arial', 15), vertical_alignment='top', size=(24, 18))
     ],
-        [sg.Frame('Report', [[sg.Multiline(generate_message(), key="report", size=(40, 10), font=('Arial', 12))]],
+        [sg.Frame('Report', [[sg.Multiline(generate_message(), key="report", size=(42, 10), font=('Arial', 12))]],
                   font=('Arial', 15))],
         [sg.OK(button_text="Commit", font=('Arial', 15)), sg.Button(button_text="Copy", key="Copy", font=('Arial', 15)),
          sg.Cancel(font=('Arial', 15)), sg.Button(button_text="Clear", key="Clear", font=('Arial', 15))]]
@@ -69,8 +69,6 @@ def parse_window_data(values):
     android_v = ""
     if "device" in values:
         device = values["device"]
-    if "android" in values:
-        android_v = values["android"]
     if "release_version" in values:
         release_v = values["release_version"]
     if "build_version" in values:
@@ -92,7 +90,7 @@ def clear_fields():
     for list in lists_to_clear:
         list.clear()
 
-    keys_to_clear = ["release_version", "build_version", "device", "android", "device_list", "report"]
+    keys_to_clear = ["release_version", "build_version", "device", "device_list", "report"]
     for key in keys_to_clear:
         window[key]('')
 
@@ -103,8 +101,7 @@ def clear_fields():
 def generate_message():
     device = ""
     for device_item in dev_ver:
-        for version in dev_ver[device_item]:
-            device += " %s / Android %s," % (device_item, version)
+        device += " %s," % (device_item)
     device = device[:-1]
     branch = ""
     for branch_item in branches:
