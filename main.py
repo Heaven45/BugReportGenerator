@@ -8,7 +8,7 @@ android_v_conf = "android_v.conf"
 
 devices = {}
 android_versions = {}
-branches = {"Dev": False,"Release": False}
+branches = {"Dev": False, "Release": False}
 dev_ver = {}
 
 device = ""
@@ -29,11 +29,13 @@ with open(android_v_conf, "r") as f:
             if not line[0] == "#":
                 android_versions.update({line: False})
 
+
 def get_devices_list():
     list = ""
     for device in dev_ver:
         list += device + "\n"
     return list
+
 
 def generate_layout():
     layout = [[
@@ -48,17 +50,19 @@ def generate_layout():
                   [sg.Combo(list(android_versions.keys()), key='android')],
                   [sg.Text("Branch:", font=('Arial', 15))],
                   [sg.Checkbox("Dev", key="Dev", enable_events=True, font=('Arial', 12))],
-                  [sg.Checkbox("Release", key="Release", enable_events=True, font=('Arial', 12))]], font=('Arial', 15), vertical_alignment='top', size=(19, 19)
-                 ),
+                  [sg.Checkbox("Release", key="Release", enable_events=True, font=('Arial', 12))]], font=('Arial', 15),
+                 vertical_alignment='top', size=(19, 19)),
 
         sg.Frame('Devices added', [[sg.Text(get_devices_list(), key="device_list", font=('Arial', 12), size=(19, 19))]],
                  font=('Arial', 15), vertical_alignment='top', size=(19, 18))
     ],
         [sg.Frame('Report', [[sg.Multiline(generate_message(), key="report", size=(40, 10), font=('Arial', 12))]],
                   font=('Arial', 15))],
-        [sg.OK(button_text="Commit", font=('Arial', 15)), sg.Cancel(font=('Arial', 15))]]
+        [sg.OK(button_text="Commit", font=('Arial', 15)), sg.Button(button_text="Copy", key="Copy", font=('Arial', 15)),
+         sg.Cancel(font=('Arial', 15)), sg.Button(button_text="Clear", key="Clear", font=('Arial', 15))]]
 
     return layout
+
 
 def parse_window_data(values):
     device = ""
@@ -83,6 +87,19 @@ def parse_window_data(values):
     return release_v, build_v
 
 
+def clear_fields():
+    lists_to_clear = [devices, android_versions, dev_ver]
+    for list in lists_to_clear:
+        list.clear()
+
+    keys_to_clear = ["release_version", "build_version", "device", "android", "device_list", "report"]
+    for key in keys_to_clear:
+        window[key]('')
+
+    window["Dev"].update(False)
+    window["Release"].update(False)
+
+
 def generate_message():
     device = ""
     for device_item in dev_ver:
@@ -94,8 +111,8 @@ def generate_message():
         if branches[branch_item]:
             branch += branch_item + ", "
     branch = branch[:-2]
-    message = "h3. Номер сборки приложения: %s (%s)\nh3. Устройство с версией Android:%s\nh3. Ветка: %s\nh3. Шаги:\n\n# \n# \n\nh3. Фактический результат:\nh3. Ожидаемый результат:  " % (
-        release_v, build_v, device, branch)
+    message = "h3. Номер сборки приложения: %s (%s)\nh3. Ветка: %s\nh3. Устройство с версией Android:%s\nh3. Шаги:\n\n# \n# \n\nh3. Фактический результат:\nh3. Ожидаемый результат:  " % (
+        release_v, build_v, branch, device)
     return message
 
 
@@ -110,6 +127,11 @@ if __name__ == '__main__':
             release_v, build_v = parse_window_data(values)
             window["device_list"].update(get_devices_list())
             window["report"].update(generate_message())
+        if event in (sg.Button, "Copy"):
+            report = generate_message()
+            pyperclip.copy(report)
+        if event in (sg.Button, "Clear"):
+            clear_fields()
         if event in (sg.WIN_CLOSED, 'Cancel'):
             break
     report = generate_message()
