@@ -7,7 +7,7 @@ Bug Report Generator is a basic desktop app to create bug report templates.
 * Python3
 * PySimpleGUI
 
-##Steps to run
+## Steps to run
 
 1. Install homebrew 
 
@@ -27,7 +27,6 @@ pip install PySimpleGUI
 
 4. Import the project
 
-
 ## Usage
 
 1. Add your devices to devices.conf
@@ -38,4 +37,3 @@ pip install PySimpleGUI
 6. Click Commit to save the report
 7. Click copy to copy the report
 8. Click clear to delete the report and uncheck all the boxes
-
