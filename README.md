@@ -2,6 +2,8 @@
 
 Bug Report Generator is a basic desktop app to create bug report templates.
 
+![image](https://user-images.githubusercontent.com/45998232/128609683-5929cd94-79bb-4c59-bdcf-1ab03a0068fb.png)
+
 ## Requirements
 
 * Python3
