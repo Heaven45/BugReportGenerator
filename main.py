@@ -51,10 +51,10 @@ def generate_layout():
                   [sg.Checkbox("Release", key="Release", enable_events=True, font=('Arial', 12))],
                   [sg.Text("", size=(5, 4))]
                   ], font=('Arial', 15),
-                 vertical_alignment='top', size=(19, 19)),
+                 vertical_alignment='top'),
 
         sg.Frame('Devices added', [[sg.Text(get_devices_list(), key="device_list", font=('Arial', 12), size=(20, 19))]],
-                 font=('Arial', 15), vertical_alignment='top', size=(24, 18))
+                 font=('Arial', 15), vertical_alignment='top')
     ],
         [sg.Frame('Report', [[sg.Multiline(generate_message(), key="report", size=(42, 10), font=('Arial', 12))]],
                   font=('Arial', 15))],
