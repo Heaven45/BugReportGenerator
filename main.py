@@ -120,7 +120,7 @@ def generate_message():
             rate += repro_item + ", "
     rate = rate[:-2]
 
-    message = "*Steps to reproduce:*\n\n#\n#\n\n*Observed result:*\n\n\n*Expected result:*\n\n\n*Repro rate:*\n%s\n\n*Devices used:*\n%s\n\n*Branch:* %s\n\n\n*Build used:* %s" % (
+    message = "**Steps to reproduce:**\n\n1.\n1.\n\n**Observed result:** \n\n\n**Expected result:**\n\n\n**Repro rate:**\n%s\n\n**Devices used:**\n%s\n\n**Branch:**\n%s\n\n**Build used:**\n%s" % (
         rate, device, branch, build_v)
     return message
 
