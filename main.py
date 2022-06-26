@@ -8,12 +8,14 @@ android_v_conf = "android_v.conf"
 
 devices = {}
 android_versions = {}
-branches = {"Dev": False, "Release": False}
+branches = {"Live": False, "Dev": False, "Release": False}
+repro_rates = {"1/4": False, "2/4": False, "3/4": False, "4/4": False}
 dev_ver = {}
 
 device = ""
 android_version = ""
 branch = ""
+repro_rate = ""
 
 with open(devices_conf, "r") as f:
     for line in f:
@@ -40,13 +42,17 @@ def get_devices_list():
 def generate_layout():
     layout = [[
         sg.Frame('Parameters',
-                 [[sg.Text("Release version:", font=('Arial', 15))],
-                  [sg.Input(key="release_version", size=(5, None))],
-                  [sg.Text("Build version:", font=('Arial', 15))],
+                 [[sg.Text("Repro rate:", font=('Arial', 15))],
+                  [sg.Checkbox("1/4", key="1/4", enable_events=True, font=('Arial', 12))],
+                  [sg.Checkbox("2/4", key="2/4", enable_events=True, font=('Arial', 12))],
+                  [sg.Checkbox("3/4", key="3/4", enable_events=True, font=('Arial', 12))],
+                  [sg.Checkbox("4/4", key="4/4", enable_events=True, font=('Arial', 12))],
+                  [sg.Text("Build used:", font=('Arial', 15))],
                   [sg.Input(key="build_version", size=(5, None))],
                   [sg.Text("Device: ", size=(5, 1), font=('Arial', 15))],
                   [sg.Combo(list(devices.keys()), key='device', size=(21, 1))],
                   [sg.Text("Branch:", font=('Arial', 15))],
+                  [sg.Checkbox("Live", key="Live", enable_events=True, font=('Arial', 12))],
                   [sg.Checkbox("Dev", key="Dev", enable_events=True, font=('Arial', 12))],
                   [sg.Checkbox("Release", key="Release", enable_events=True, font=('Arial', 12))],
                   [sg.Text("", size=(5, 4))]
@@ -69,8 +75,6 @@ def parse_window_data(values):
     android_v = ""
     if "device" in values:
         device = values["device"]
-    if "release_version" in values:
-        release_v = values["release_version"]
     if "build_version" in values:
         build_v = values["build_version"]
 
@@ -82,7 +86,9 @@ def parse_window_data(values):
             dev_ver.update({device: [android_v]})
     for branch in branches:
         branches[branch] = values[branch]
-    return release_v, build_v
+    for rate in repro_rates:
+        repro_rates[rate] = values[rate]
+    return build_v
 
 
 def clear_fields():
@@ -90,7 +96,7 @@ def clear_fields():
     for list in lists_to_clear:
         list.clear()
 
-    keys_to_clear = ["release_version", "build_version", "device", "device_list", "report"]
+    keys_to_clear = ["build_version", "device", "device_list", "report"]
     for key in keys_to_clear:
         window[key]('')
 
@@ -108,8 +114,14 @@ def generate_message():
         if branches[branch_item]:
             branch += branch_item + ", "
     branch = branch[:-2]
-    message = "h3. Номер сборки приложения: %s (%s)\nh3. Ветка: %s\nh3. Устройство с версией Android:%s\nh3. Шаги:\n\n# \n# \n\nh3. Фактический результат:\nh3. Ожидаемый результат:  " % (
-        release_v, build_v, branch, device)
+    rate = ''
+    for repro_item in repro_rates:
+        if repro_rates[repro_item]:
+            rate += repro_item + ", "
+    rate = rate[:-2]
+
+    message = "*Steps to reproduce:*\n\n#\n#\n\n*Observed result:*\n\n\n*Expected result:*\n\n\n*Repro rate:*\n%s\n\n*Devices used:*\n%s\n\n*Branch:* %s\n\n\n*Build used:* %s" % (
+        rate, device, branch, build_v)
     return message
 
 
@@ -121,7 +133,7 @@ if __name__ == '__main__':
     while True:
         event, values = window.read()
         if event in (sg.OK(), "Commit"):
-            release_v, build_v = parse_window_data(values)
+            build_v = parse_window_data(values)
             window["device_list"].update(get_devices_list())
             window["report"].update(generate_message())
         if event in (sg.Button, "Copy"):
