@@ -1,6 +1,8 @@
 import PySimpleGUI as sg
 import pyperclip
 
+import requests
+
 sg.theme('dark grey 8')
 
 devices_conf = "devices.conf"
@@ -8,8 +10,9 @@ android_v_conf = "android_v.conf"
 
 devices = {}
 android_versions = {}
-branches = {"Live": False, "Dev": False, "Release": False}
 repro_rates = {"1/4": False, "2/4": False, "3/4": False, "4/4": False}
+branches = {"Live": False, "Dev": False, "Release": False}
+backend_environments = {"Production": False, "Staging": False, "Dev": False}
 dev_ver = {}
 
 device = ""
@@ -42,30 +45,42 @@ def get_devices_list():
 def generate_layout():
     layout = [[
         sg.Frame('Parameters',
+                 # Repro rate
                  [[sg.Text("Repro rate:", font=('Arial', 15))],
                   [sg.Checkbox("1/4", key="1/4", enable_events=True, font=('Arial', 12))],
                   [sg.Checkbox("2/4", key="2/4", enable_events=True, font=('Arial', 12))],
                   [sg.Checkbox("3/4", key="3/4", enable_events=True, font=('Arial', 12))],
                   [sg.Checkbox("4/4", key="4/4", enable_events=True, font=('Arial', 12))],
+                  # Branch
+                  [sg.Text("Reproduced in:", font=('Arial', 15))],
+                  [sg.Checkbox("Dev", key="Dev", enable_events=True, font=('Arial', 12))],
+                  [sg.Checkbox("Live", key="Live", enable_events=True, font=('Arial', 12))],
+                  [sg.Checkbox("RC", key="Release", enable_events=True, font=('Arial', 12))],
+                  # Build used
                   [sg.Text("Build used:", font=('Arial', 15))],
                   [sg.Input(key="build_version", size=(5, None))],
                   [sg.Text("Device: ", size=(5, 1), font=('Arial', 15))],
                   [sg.Combo(list(devices.keys()), key='device', size=(21, 1))],
-                  [sg.Text("Branch:", font=('Arial', 15))],
-                  [sg.Checkbox("Live", key="Live", enable_events=True, font=('Arial', 12))],
+                  # API
+                  [sg.Text("API:", font=('Arial', 15))],
+                  [sg.Checkbox("Production", key="Production", enable_events=True, font=('Arial', 12))],
+                  [sg.Checkbox("Staging", key="Staging", enable_events=True, font=('Arial', 12))],
                   [sg.Checkbox("Dev", key="Dev", enable_events=True, font=('Arial', 12))],
-                  [sg.Checkbox("Release", key="Release", enable_events=True, font=('Arial', 12))],
                   [sg.Text("", size=(5, 4))]
                   ], font=('Arial', 15),
                  vertical_alignment='top'),
 
+        # Devices added to report
         sg.Frame('Devices added', [[sg.Text(get_devices_list(), key="device_list", font=('Arial', 12), size=(20, 19))]],
-                 font=('Arial', 15), vertical_alignment='top')
-    ],
+                 font=('Arial', 15), vertical_alignment='top')],
+
+        # Generated report
         [sg.Frame('Report', [[sg.Multiline(generate_message(), key="report", size=(42, 10), font=('Arial', 12))]],
                   font=('Arial', 15))],
-        [sg.OK(button_text="Commit", font=('Arial', 15)), sg.Button(button_text="Copy", key="Copy", font=('Arial', 15)),
-         sg.Cancel(font=('Arial', 15)), sg.Button(button_text="Clear", key="Clear", font=('Arial', 15))]]
+        [sg.OK(button_text="Commit", font=('Arial', 15)),
+         sg.Button(button_text="Copy", key="Copy", font=('Arial', 15)),
+         sg.Button(button_text="Clear", key="Clear", font=('Arial', 15)),
+         sg.Button(button_text="Open Jira", key="Open Jira", font=('Arial', 15))]]
 
     return layout
 
@@ -88,6 +103,9 @@ def parse_window_data(values):
         branches[branch] = values[branch]
     for rate in repro_rates:
         repro_rates[rate] = values[rate]
+    for env in backend_environments:
+        backend_environments[env] = values[env]
+
     return build_v
 
 
@@ -107,21 +125,44 @@ def clear_fields():
 def generate_message():
     device = ""
     for device_item in dev_ver:
-        device += " %s," % (device_item)
+        device += f"{device_item}, "
     device = device[:-1]
     branch = ""
     for branch_item in branches:
         if branches[branch_item]:
             branch += branch_item + ", "
     branch = branch[:-2]
-    rate = ''
+    rate = ""
     for repro_item in repro_rates:
         if repro_rates[repro_item]:
             rate += repro_item + ", "
     rate = rate[:-2]
+    environment = ""
+    for env in backend_environments:
+        if backend_environments[env]:
+            environment += env + ", "
 
-    message = "**Steps to reproduce:**\n\n1.\n1.\n\n**Observed result:** \n\n\n**Expected result:**\n\n\n**Repro rate:**\n%s\n\n**Devices used:**\n%s\n\n**Branch:**\n%s\n\n**Build used:**\n%s" % (
-        rate, device, branch, build_v)
+    message = f"""**Steps to reproduce:**\n
+1.
+
+1.
+
+**Observed result:**
+
+**Expected result:**
+
+**Repro rate:**
+{rate}
+
+**Devices used:**
+{device}\n
+
+**API:**
+{environment}
+
+**Branch:**\n{branch}
+
+**Build used:**\n{build_v}"""
     return message
 
 
@@ -141,6 +182,8 @@ if __name__ == '__main__':
             pyperclip.copy(report)
         if event in (sg.Button, "Clear"):
             clear_fields()
+        if event in (sg.Button, "Open Jira"):
+            requests.open_jira()
         if event in (sg.WIN_CLOSED, 'Cancel'):
             break
     report = generate_message()
